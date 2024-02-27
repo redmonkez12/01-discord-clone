@@ -1,3 +1,5 @@
+"use client";
+
 import {
     createContext,
     useContext,
@@ -17,8 +19,8 @@ const SocketContext = createContext<SocketContextType>({
 });
 
 export const useSocket = () => {
-    return useContext(SocketContext)
-}
+    return useContext(SocketContext);
+};
 
 export const SocketProvider = ({
                                    children
@@ -46,12 +48,12 @@ export const SocketProvider = ({
 
         return () => {
             socketInstance.disconnect();
-        }
+        };
     }, []);
 
     return (
         <SocketContext.Provider value={{ socket, isConnected }}>
             {children}
         </SocketContext.Provider>
-    )
-}
+    );
+};
