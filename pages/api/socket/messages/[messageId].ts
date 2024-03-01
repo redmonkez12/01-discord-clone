@@ -1,16 +1,20 @@
 import { NextApiRequest } from "next";
-import { NextApiResponseServerIo } from "@/types";
-import { currentProfile } from "@/lib/current-profile";
-import { db } from "@/lib/db";
 import { MemberRole } from "@prisma/client";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponseServerIo) {
+import { NextApiResponseServerIo } from "@/types";
+import { currentProfilePages } from "@/lib/current-profile-pages";
+import { db } from "@/lib/db";
+
+export default async function handler(
+    req: NextApiRequest,
+    res: NextApiResponseServerIo,
+) {
     if (req.method !== "DELETE" && req.method !== "PATCH") {
         return res.status(405).json({ error: "Method not allowed" });
     }
 
     try {
-        const profile = await currentProfile();
+        const profile = await currentProfilePages(req);
         const { messageId, serverId, channelId } = req.query;
         const { content } = req.body;
 
@@ -19,11 +23,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
         }
 
         if (!serverId) {
-            return res.status(400).json({ error: "Server is missing" });
+            return res.status(400).json({ error: "Server ID missing" });
         }
 
         if (!channelId) {
-            return res.status(400).json({ error: "Channel is missing" });
+            return res.status(400).json({ error: "Channel ID missing" });
         }
 
         const server = await db.server.findFirst({
@@ -32,13 +36,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
                 members: {
                     some: {
                         profileId: profile.id,
-                    },
-                },
+                    }
+                }
             },
             include: {
                 members: true,
-            },
-        });
+            }
+        })
 
         if (!server) {
             return res.status(404).json({ error: "Server not found" });
@@ -47,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
         const channel = await db.channel.findFirst({
             where: {
                 id: channelId as string,
-                serverId: server.id,
+                serverId: serverId as string,
             },
         });
 
@@ -55,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
             return res.status(404).json({ error: "Channel not found" });
         }
 
-        const member = server.members.find(member => member.profileId = profile.id);
+        const member = server.members.find((member) => member.profileId === profile.id);
 
         if (!member) {
             return res.status(404).json({ error: "Member not found" });
@@ -70,10 +74,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
                 member: {
                     include: {
                         profile: true,
-                    },
-                },
-            },
-        });
+                    }
+                }
+            }
+        })
 
         if (!message || message.deleted) {
             return res.status(404).json({ error: "Message not found" });
@@ -95,19 +99,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
                 },
                 data: {
                     fileUrl: null,
-                    content: "This message has been deleted",
+                    content: "This message has been deleted.",
                     deleted: true,
                 },
                 include: {
                     member: {
                         include: {
                             profile: true,
-                        },
-                    },
-                },
-            });
+                        }
+                    }
+                }
+            })
         }
-
 
         if (req.method === "PATCH") {
             if (!isMessageOwner) {
@@ -136,9 +139,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
         res?.socket?.server?.io?.emit(updateKey, message);
 
         return res.status(200).json(message);
-
     } catch (error) {
         console.log("[MESSAGE_ID]", error);
-        return res.status(500).json({ error: "Internal error" });
+        return res.status(500).json({ error: "Internal Error" });
     }
 }

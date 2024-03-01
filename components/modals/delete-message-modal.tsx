@@ -1,18 +1,21 @@
 "use client";
 
+import qs from "query-string";
+import axios from "axios";
+import { useState } from "react";
+
 import {
     Dialog,
-    DialogContent, DialogDescription, DialogFooter,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
 import { useModal } from "@/hooks/use-modal-store";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import axios from "axios";
-import qs from "query-string";
 
-export const DeleteMessageModal  = () => {
+export const DeleteMessageModal = () => {
     const { isOpen, onClose, type, data } = useModal();
 
     const isModalOpen = isOpen && type === "deleteMessage";
@@ -20,13 +23,13 @@ export const DeleteMessageModal  = () => {
 
     const [isLoading, setIsLoading] = useState(false);
 
-    async function onClick() {
+    const onClick = async () => {
         try {
             setIsLoading(true);
-
             const url = qs.stringifyUrl({
                 url: apiUrl || "",
-            })
+                query,
+            });
 
             await axios.delete(url);
 
@@ -45,19 +48,25 @@ export const DeleteMessageModal  = () => {
                     <DialogTitle className="text-2xl text-center font-bold">
                         Delete Message
                     </DialogTitle>
-                    <DialogDescription className="text-center text-zin-500">
-                        Are you sure you want to do this? <br/>
+                    <DialogDescription className="text-center text-zinc-500">
+                        Are you sure you want to do this? <br />
                         The message will be permanently deleted.
                     </DialogDescription>
                 </DialogHeader>
-
                 <DialogFooter className="bg-gray-100 px-6 py-4">
                     <div className="flex items-center justify-between w-full">
-                        <Button disabled={isLoading} onClick={onClose} variant="ghost">
+                        <Button
+                            disabled={isLoading}
+                            onClick={onClose}
+                            variant="ghost"
+                        >
                             Cancel
                         </Button>
-
-                        <Button disabled={isLoading} onClick={onClick} variant="primary">
+                        <Button
+                            disabled={isLoading}
+                            variant="primary"
+                            onClick={onClick}
+                        >
                             Confirm
                         </Button>
                     </div>

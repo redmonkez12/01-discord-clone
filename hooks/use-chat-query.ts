@@ -14,7 +14,7 @@ export const useChatQuery = ({
                                  queryKey,
                                  apiUrl,
                                  paramKey,
-                                 paramValue
+                                 paramValue,
                              }: ChatQueryProps) => {
     const { isConnected } = useSocket();
 
@@ -51,4 +51,4 @@ export const useChatQuery = ({
         isFetchingNextPage,
         status,
     };
-}
+};
